@@ -1,0 +1,82 @@
+Sub StockData()
+
+Dim WS As Worksheet
+        Dim Open_Price As Double
+        Dim Close_Price As Double
+        Dim Yearly_Change As Double
+        Dim Ticker_Name As String
+        Dim Percent_Change As Double
+        Dim Volume As Double
+        Volume = 0
+        Dim Row As Double
+        Row = 2
+        Dim Column As Integer
+        Column = 1
+        Dim i As Long
+            For Each WS In ActiveWorkbook.Worksheets
+            WS.Activate
+        LastRow = WS.Cells(Rows.Count, 1).End(xlUp).Row
+
+        ' creating heading
+        Range("I1").Value = "Ticker"
+        Range("J1").Value = "Yearly Change"
+        Range("K1").Value = "Percent Change"
+        Range("L1").Value = "Total Stock Volume"
+
+        Open_Price = Range("C2").Value
+        
+        For i = 2 To LastRow
+                If Cells(i + 1, Column).Value <> Cells(i, Column).Value Then
+                Ticker_Name = Cells(i, Column).Value
+                Cells(Row, Column + 8).Value = Ticker_Name
+                Close_Price = Cells(i, Column + 5).Value
+                Yearly_Change = Close_Price - Open_Price
+                Cells(Row, Column + 9).Value = Yearly_Change
+                If (Open_Price = 0 And Close_Price = 0) Then
+                    Percent_Change = 0
+                ElseIf (Open_Price = 0 And Close_Price <> 0) Then
+                    Percent_Change = 1
+                Else
+                    Percent_Change = Yearly_Change / Open_Price
+                    Cells(Row, Column + 10).Value = Percent_Change
+                    Cells(Row, Column + 10).NumberFormat = "0.00%"
+                End If
+                Volume = Volume + Cells(i, Column + 6).Value
+                Cells(Row, Column + 11).Value = Volume
+                Row = Row + 1
+                Open_Price = Cells(i + 1, Column + 2)
+                Volume = 0
+            Else
+                Volume = Volume + Cells(i, Column + 6).Value
+            End If
+        Next i
+        
+        ' excuting Yearly Change
+        YearlyChange_LastRow = WS.Cells(Rows.Count, Column + 8).End(xlUp).Row
+
+        ' Seting Greatest % Increase, Greatest % Decrease, and Greatest total Volume
+        Range("P8").Value = "Ticker"
+        Range("Q8").Value = "Value"
+        Range("O9").Value = "Greatest % Increase"
+        Range("O10").Value = "Greatest % Decrease"
+        Range("O11").Value = "Greatest Total Volume"
+
+        ' locating the stock with the "Greatest % increase", "Greatest % Decrease" and "Greatest total volume"
+        For x = 2 To YearlyChange_LastRow
+            If Cells(x, Column + 10).Value = Application.WorksheetFunction.Max(WS.Range("K2:K" & YearlyChange_LastRow)) Then
+                Range("P9").Value = Cells(x, Column + 8).Value
+                Range("Q9").Value = Cells(x, Column + 10).Value
+                Range("Q9").NumberFormat = "0.00%"
+            ElseIf Cells(x, Column + 10).Value = Application.WorksheetFunction.Min(WS.Range("K2:K" & YearlyChange_LastRow)) Then
+                Range("P10").Value = Cells(x, Column + 8).Value
+                Range("Q10").Value = Cells(x, Column + 10).Value
+                Range("Q10").NumberFormat = "0.00%"
+            ElseIf Cells(x, Column + 11).Value = Application.WorksheetFunction.Max(WS.Range("L2:L" & YearlyChange_LastRow)) Then
+                Range("P11").Value = Cells(x, Column + 8).Value
+                Range("Q11").Value = Cells(x, Column + 11).Value
+            End If
+        Next x
+        
+    Next WS
+        
+End Sub
